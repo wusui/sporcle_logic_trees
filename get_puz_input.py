@@ -1,0 +1,96 @@
+# Copyright (C) 2024 Warren Usui, MIT License
+"""
+Convert layouts to a packet formatted in a more friendly manner for the
+solver.  The packet returned is a dict with a grid_entry and a color_chart
+entry
+"""
+import os
+import string
+import json
+from itertools import combinations
+import get_layouts
+import brainz
+from html_builder import make_html_file
+
+def mk_packet(sq_list):
+    """
+    Test the grid and return False if bad.  If okay, return a dictionary
+    where the 'layout' value is representation of the grid with unsolved
+    squares still marked with letters.  The 'cchart' value in the
+    dictionary is a mapping of a square's letter representation to
+    its 24 bit color code.
+    """
+    def find_closest_cols(hexlist):
+        def conv_rgbs(cpart):
+            return list(map(lambda a: int(f'0x{a}', 16), cpart))
+        def sumdiffs(cvals):
+            return sum(list(map(lambda a: abs(cvals[0][a] - cvals[1][a]),
+                                [0, 1, 2])))
+        mindiff = 1000
+        best_so_far = []
+        for pair in combinations(hexlist, 2):
+            cparts = list(map(lambda a: [a[1:3], a[3:5], a[5:7]], pair))
+            cdiff = sumdiffs(list(map(conv_rgbs, cparts)))
+            if cdiff < mindiff:
+                mindiff = cdiff
+                best_so_far = pair
+        return list(map(lambda a: best_so_far[1] if a == best_so_far[0]
+                        else a, sq_list))
+    if int(len(sq_list) ** .5) ** 2 != len(sq_list):
+        print('number of cells not a perfect square')
+        return []
+    rgbv = list(set(sq_list))
+    ltoc = list(map(lambda a: [string.ascii_lowercase[a[0]], a[1]],
+                    enumerate(rgbv)))
+    ctol = dict(list(map(lambda a: [a[1], a[0]], ltoc)))
+    grid = ''.join(list(map(lambda a: ctol[a], sq_list)))
+    if len(ctol) ** 2 > len(sq_list):
+        return mk_packet(find_closest_cols(sorted(ctol)))
+    if len(ctol) ** 2 < len(grid):
+        print('number of colors less than size of square')
+        return []
+    layout = list(map(lambda a: grid[a:a + len(ctol)], range(0, len(grid),
+                                                             len(ctol))))
+    return {'layout': layout, 'cchart': dict(ltoc)}
+
+def get_pkt_from_json(numb):
+    """
+    Read saved grids and extract the grid from the saved_grids json file.
+    Pass that grid to mk_packet
+    """
+    with open('saved_grids.json', 'r', encoding='utf-8') as fp_trees:
+        plist = json.loads(fp_trees.read())
+    if str(numb) not in plist:
+        return []
+    return mk_packet(plist[str(numb)])
+
+def get_puz_pkt(number):
+    """
+    Either extract data from saved_grids.json or directly from the web page
+    """
+    cmap = []
+    if os.path.exists('saved_grids.json'):
+        cmap = get_pkt_from_json(number)
+    if not cmap:
+        cmap = mk_packet(get_layouts.get_grid(
+            get_layouts.get_new_gname(number)))
+    return cmap
+
+def get_puz_pkt_and_sol(number):
+    """
+    Main solver entry point
+    """
+    cmap = get_puz_pkt(number)
+    sol_text = brainz.solver([number, cmap['layout']])
+    return [cmap['cchart'], sol_text]
+
+def solve_logic_tree(number):
+    """
+    The whole enchilada for one puzzle.  Number is the sporcle game number.
+    logic_tree_<number>.html gets created in the html directory
+    """
+    make_html_file(get_puz_pkt_and_sol(number))
+
+if __name__ == "__main__":
+    for puzzle in range(1, 201):
+        solve_logic_tree(puzzle)
