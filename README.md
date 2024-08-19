@@ -18,3 +18,7 @@ where each string represents a row of the puzzle and each character in the strin
 is substituted for each color.  'cchart' is the second item which is dictionary of color values indexed by the corresponding character
 in the layout.  Other functions include various combinations that call solving and display functions.  Solve_logic_tree(number) is a
 one-stop shop that takes a puzzle number and produces an html page for the solution.
+
+### brainz.py
+Main puzzle solver routine.
+
