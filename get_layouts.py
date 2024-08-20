@@ -15,6 +15,12 @@ def get_puzzle(numb):
     """
     Given a number, return the url of the logic tree webpage
     """
+    if numb == '240':
+        return '/'.join(['https://www.sporcle.com/games/Katie_Wandering',
+                    'woo-my-400th-quiz'])
+    if numb == '500':
+        return '/'.join(['https://www.sporcle.com/games/Katie_Wandering',
+                    '500-trees-logic-puzzles'])
     return '/'.join(['https://www.sporcle.com/games',
                     f'Katie_Wandering/trees-logic-puzzle-{numb}'])
 
@@ -24,7 +30,10 @@ def adj_numb(number):
     cases due to Sporcle inconsistencies.
     """
     bad_sporcle = {29: 'xxvix', 102: '103-1', 160: '160-1', 183: '183-1',
-                   63: 'lxiii', 68: 'lxviii', 73: 'lxxiii'}
+                   63: 'lxiii', 68: 'lxviii', 73: 'lxxiii', 204: '204-1',
+                   205: '205-1', 282: '282-1', 291: '291-1', 329: '329-1',
+                   344: '344-1', 388: '388-1', 484: '484-1', 485: '485-1',
+                   638: '638-1'}
     def romanize():
         def one_digit(lowdig):
             if lowdig % 5 == 4:
@@ -79,7 +88,7 @@ def populate_games():
     """
     Stash a bunch of grid layouts.
     """
-    data =  dict(list(map(lambda a: [a, get_tree_grid(a)], range(1, 201))))
+    data =  dict(list(map(lambda a: [a, get_tree_grid(a)], range(1, 646))))
     with open('saved_grids.json', 'w', encoding='utf-8') as fp_trees:
         json.dump(data, fp_trees, indent=4)
 

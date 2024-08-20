@@ -12,6 +12,58 @@ import get_layouts
 import brainz
 from html_builder import make_html_file
 
+def fix_dup_fig_col(sq_list):
+    """
+    If there are too few unique colors, find non-touching figures that
+    have the same color and slightly modify one.
+    """
+    fdfc_pkt = list(map(lambda a: [a[0], a[1], False], enumerate(sq_list)))
+    fval = {}
+    for entry in fdfc_pkt:
+        if entry[1] not in fval:
+            fval[entry[1]] = entry[0]
+            entry[2] = True
+    s_size = int(len(sq_list) ** .5)
+    old_con = 0
+    new_con = len(list(filter(lambda a: a[2], fdfc_pkt)))
+    while new_con > old_con:
+        for entry in fdfc_pkt:
+            def ichk_entry(entv):
+                if entv[0] >= s_size:
+                    nbor = fdfc_pkt[entv[0] - s_size]
+                    if nbor[1] == entv[1] and nbor[2]:
+                        entv[2] = True
+                if entv[0] <= s_size * (s_size - 1) - 1:
+                    nbor = fdfc_pkt[entv[0] + s_size]
+                    if nbor[1] == entv[1] and nbor[2]:
+                        entv[2] = True
+                if entv[0] % s_size != 0:
+                    nbor = fdfc_pkt[entv[0] - 1]
+                    if nbor[1] == entv[1] and nbor[2]:
+                        entv[2] = True
+                if entv[0] % s_size != s_size - 1:
+                    nbor = fdfc_pkt[entv[0] + 1]
+                    if nbor[1] == entv[1] and nbor[2]:
+                        entv[2] = True
+                return entv
+            if entry[2]:
+                continue
+            entry = ichk_entry(entry)
+        old_con = new_con
+        new_con = len(list(filter(lambda a: a[2], fdfc_pkt)))
+    new_sq = []
+    for sq_info in fdfc_pkt:
+        if sq_info[2]:
+            new_sq.append(sq_info[1])
+            continue
+        numb = int(sq_info[1][1:], 16)
+        if numb % 2 == 0:
+            numb += 1
+        else:
+            numb -= 1
+        new_sq.append(f'#{hex(numb)[2:]}')
+    return new_sq
+
 def mk_packet(sq_list):
     """
     Test the grid and return False if bad.  If okay, return a dictionary
@@ -47,8 +99,7 @@ def mk_packet(sq_list):
     if len(ctol) ** 2 > len(sq_list):
         return mk_packet(find_closest_cols(sorted(ctol)))
     if len(ctol) ** 2 < len(grid):
-        print('number of colors less than size of square')
-        return []
+        return mk_packet(fix_dup_fig_col(sq_list))
     layout = list(map(lambda a: grid[a:a + len(ctol)], range(0, len(grid),
                                                              len(ctol))))
     return {'layout': layout, 'cchart': dict(ltoc)}
@@ -62,7 +113,10 @@ def get_pkt_from_json(numb):
         plist = json.loads(fp_trees.read())
     if str(numb) not in plist:
         return []
-    return mk_packet(plist[str(numb)])
+    ret_val = mk_packet(plist[str(numb)])
+    if not ret_val:
+        print(f'{numb} -- puzzle that probably has issues')
+    return ret_val
 
 def get_puz_pkt(number):
     """
@@ -74,6 +128,8 @@ def get_puz_pkt(number):
     if not cmap:
         cmap = mk_packet(get_layouts.get_grid(
             get_layouts.get_new_gname(number)))
+        if not cmap:
+            print(f'{number} -- puzzle that probably has issues')
     return cmap
 
 def get_puz_pkt_and_sol(number):
@@ -92,5 +148,5 @@ def solve_logic_tree(number):
     make_html_file(get_puz_pkt_and_sol(number))
 
 if __name__ == "__main__":
-    for puzzle in range(1, 201):
+    for puzzle in range(1, 646):
         solve_logic_tree(puzzle)

@@ -3,9 +3,8 @@
 Find solutions
 """
 from functools import reduce
-from blobe_wcfaf import blobe_wcfaf
-from blobe_remext import blobe_remext
-from blobe_combos import blobe_combos
+from bcommon import make_pmap, do_easy_checks, show_board
+from blobe_pspots import blobe_pspots
 
 def check_input(board):
     """
@@ -33,27 +32,13 @@ def update(board):
     This process iterates by starting from the beginning so new changes
     made will be caught and used for processing
     """
-    pmap = dict(list(map(lambda a: [a, []], list(set(
-                reduce(lambda a, b: a + b, board))))))
-    if '-' in pmap:
-        del pmap['-']
-    for row in enumerate(board):
-        for col in enumerate(board):
-            if board[row[0]][col[0]].islower():
-                pmap[board[row[0]][col[0]]].append([row[0], col[0]])
-    # Scan for squares that will make other figure filling impossible
-    chk0_val = blobe_wcfaf(board, pmap)
-    if chk0_val:
-        return chk0_val
-    # Scan for locations in figures where we know the tree is in another
-    # row or column
-    chk1_val = blobe_remext(board, pmap)
-    if chk1_val:
-        return chk1_val
-    # Scan for groups of figures with common usable characteristics
-    chk2_val = blobe_combos(board, pmap)
-    if chk2_val:
-        return chk2_val
+    pmap = make_pmap(board)
+    chk_inf = do_easy_checks(board, pmap)
+    if chk_inf:
+        return chk_inf
+    chk3_val = blobe_pspots(board, pmap)
+    if chk3_val:
+        return chk3_val
     return [list(map(lambda a: a.upper(), board)), '<TEXT 0> Incomplete\n']
 
 def still_not_solved(board):
@@ -62,15 +47,6 @@ def still_not_solved(board):
     """
     return len(list(filter(lambda a: a.islower(),
                     reduce(lambda a, b: a + b, board)))) > len(board)
-
-def show_board(board):
-    """
-    Display board as multiple rows
-    """
-    rstring = "<BOARD>\n"
-    for value in board:
-        rstring += f"{value}\n"
-    return rstring + '\n'
 
 def solver(in_data):
     """
@@ -85,4 +61,5 @@ def solver(in_data):
         board = ret_data[0]
         story_log += (ret_data[1] + show_board(ret_data[0]))
     story_log += ('<TEXT 9>\nFinal Grid\n' + show_board(ret_data[0]))
+    print(f'Solved quiz {in_data[0]}')
     return story_log

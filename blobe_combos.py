@@ -121,7 +121,7 @@ def blobe_combos(board, pmap):
                 return [board, answer]
         return []
     ufigs = list(filter(lambda a: len(pmap[a]) > 1, pmap))
-    for count in range(2, min(5, len(ufigs))):
+    for count in range(2, len(ufigs) - 1):
         figs = list(combinations(ufigs, count))
         for matchup in figs:
             for indx in range(0, 2):
