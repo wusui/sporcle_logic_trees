@@ -46,6 +46,9 @@ Common routines used by brainz.py and the blobe modules.
 ### html_builder.py
 Constructs the Html file that describes how a puzzle was solved.
 
+### get_latest.py
+Scans Sporcle site to find the number of the most recently created puzzle
+
 ### template.aard
 Primitive homegrown template for generating the html file built by html_builder.
 
