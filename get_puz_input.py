@@ -11,6 +11,7 @@ from itertools import combinations
 import get_layouts
 import brainz
 from html_builder import make_html_file
+from get_latest import get_latest
 
 def fix_dup_fig_col(sq_list):
     """
@@ -148,5 +149,5 @@ def solve_logic_tree(number):
     make_html_file(get_puz_pkt_and_sol(number))
 
 if __name__ == "__main__":
-    for puzzle in range(1, 646):
+    for puzzle in range(1, get_latest() + 1):
         solve_logic_tree(puzzle)

@@ -10,6 +10,7 @@ import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+from get_latest import get_latest
 
 def get_puzzle(numb):
     """
@@ -88,7 +89,8 @@ def populate_games():
     """
     Stash a bunch of grid layouts.
     """
-    data =  dict(list(map(lambda a: [a, get_tree_grid(a)], range(1, 646))))
+    data =  dict(list(map(lambda a: [a, get_tree_grid(a)],
+                          range(1, get_latest() + 1))))
     with open('saved_grids.json', 'w', encoding='utf-8') as fp_trees:
         json.dump(data, fp_trees, indent=4)
 
