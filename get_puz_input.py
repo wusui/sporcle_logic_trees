@@ -6,12 +6,12 @@ entry
 """
 import os
 import string
-import json
 from itertools import combinations
 import get_layouts
 import brainz
 from html_builder import make_html_file
 from get_latest import get_latest
+import file_classes
 
 def fix_dup_fig_col(sq_list):
     """
@@ -105,49 +105,56 @@ def mk_packet(sq_list):
                                                              len(ctol))))
     return {'layout': layout, 'cchart': dict(ltoc)}
 
-def get_pkt_from_json(numb):
+def get_pkt_from_json(numb, jsonfiles):
     """
     Read saved grids and extract the grid from the saved_grids json file.
     Pass that grid to mk_packet
     """
-    with open('saved_grids.json', 'r', encoding='utf-8') as fp_trees:
-        plist = json.loads(fp_trees.read())
-    if str(numb) not in plist:
+    pdict = jsonfiles['grid'].get_data()
+    if str(numb) not in pdict:
         return []
-    ret_val = mk_packet(plist[str(numb)])
+    ret_val = mk_packet(pdict[str(numb)])
     if not ret_val:
         print(f'{numb} -- puzzle that probably has issues')
     return ret_val
 
-def get_puz_pkt(number):
+def get_puz_pkt(number, jsonfiles):
     """
     Either extract data from saved_grids.json or directly from the web page
     """
     cmap = []
     if os.path.exists('saved_grids.json'):
-        cmap = get_pkt_from_json(number)
+        cmap = get_pkt_from_json(number, jsonfiles)
     if not cmap:
         cmap = mk_packet(get_layouts.get_grid(
-            get_layouts.get_new_gname(number)))
+            [get_layouts.get_new_gname(number, jsonfiles),
+            str(number)], jsonfiles))
         if not cmap:
             print(f'{number} -- puzzle that probably has issues')
     return cmap
 
-def get_puz_pkt_and_sol(number):
+def get_puz_pkt_and_sol(number, jsonfiles):
     """
     Main solver entry point
     """
-    cmap = get_puz_pkt(number)
+    cmap = get_puz_pkt(number, jsonfiles)
     sol_text = brainz.solver([number, cmap['layout']])
     return [cmap['cchart'], sol_text]
 
-def solve_logic_tree(number):
+def solve_logic_tree(number, jsonfiles):
     """
     The whole enchilada for one puzzle.  Number is the sporcle game number.
     logic_tree_<number>.html gets created in the html directory
     """
-    make_html_file(get_puz_pkt_and_sol(number))
+    make_html_file(get_puz_pkt_and_sol(number, jsonfiles))
+
+def do_complete_check():
+    """
+    Run solve_logic_tree for every puzzle that we can find.
+    """
+    jsonfiles = file_classes.get_json_files()
+    for puzzle in range(1, get_latest() + 1):
+        solve_logic_tree(puzzle, jsonfiles)
 
 if __name__ == "__main__":
-    for puzzle in range(1, get_latest() + 1):
-        solve_logic_tree(puzzle)
+    do_complete_check()

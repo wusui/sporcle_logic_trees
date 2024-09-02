@@ -5,7 +5,7 @@ figures tree exists.
 """
 def  blobe_remext(board, pmap):
     """
-    TO DO: Expand to multiple rows/columns
+    This case happens when all blobe_wcfaf.py tests fail
     """
     def commond(ltype):
         switcher = {'row': 0, 'col': 1}
