@@ -49,16 +49,32 @@ Constructs the Html file that describes how a puzzle was solved.
 ### get_latest.py
 Scans Sporcle site to find the number of the most recently created puzzle
 
+### file_classes.py
+Encapsulation of saved_grids.json different_names.json and very_different_names.json.
+
 ### template.aard
 Primitive homegrown template for generating the html file built by html_builder.
 
+### different_names.json
+A dict indexed by game number that contains the file suffix of logic puzzles that are not the same as the game number
+
+### very_different_names.json
+A dict indexed by game number where the entire file name is different from the standard file name for a tree logic puzzle.
+
 ## Files created
 
-saved_grids.json stores a dictionary indexed by puzzle number where each entry is a list of squares in that puzzle.  Cteated by running
+saved_grids.json stores a dictionary indexed by puzzle number where each entry is a list of squares in that puzzle.  Created by running
 get_layouts.py
 
 html is a local directory where solutions named logic_tree_<number>.html are stored.  All logic tree puzzles are solved by
 running get_puz_input.py
 
+## Usage
 
+A first time user should run python get_layouts.py to create the saved_grids.json file.  This will take one to two hours.
+Once saved_grids.json is built, this step is not needed.
 
+After that, running python get_latest.py will update the *_different_name.json files to include any oddly named puzzles that have
+been recently created.
+
+Running python get_puz_input.py will then create all the solutions in the html directory
