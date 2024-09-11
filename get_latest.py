@@ -57,6 +57,9 @@ def get_unsaved_puzzles(jsonfiles):
         new_entries.append(entry)
     if not new_entries:
         return
+    print("New puzzles added:")
+    for pzval in new_entries:
+        print(f"\t{pzval['game_name']}")
     pnumbs = list(map(lambda a: a['game_name'].split(' ')[-1], new_entries))
     urlvals = list(map(lambda a: a['game_url'].split('/')[-1], new_entries))
     edit_diff_files(list(zip(pnumbs, urlvals)), jsonfiles)
